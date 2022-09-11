@@ -61,13 +61,12 @@ export default function CampoMinado ({ size, bombsAmount }) {
 
     keys.forEach((position) => {
       objCells.forEach((cell, i) => {
-        if (position === cell.position && cell) {
+        if (position === cell.position) {
           const cellChanged = {
-            ...cell,
-            bombsAround: cell.bombsAround + 1,
+            ...cells[i],
+            bombsAround: cells[i].bombsAround + 1,
           }
           cells.splice(i, 1, cellChanged);
-          console.log(cell);
         };
       });
     });
@@ -80,7 +79,6 @@ export default function CampoMinado ({ size, bombsAmount }) {
         const newNumber = Math.floor(Math.random() * (size * size));
         !cellsWithBombs.includes(newNumber) && cellsWithBombs.push(newNumber);
       };
-      console.log(cellsWithBombs);
       const cells = [...objCells];
       cellsWithBombs.forEach((cellNumber) => {
         const cellChanged = {
