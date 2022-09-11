@@ -23,6 +23,7 @@ let redefineBombs = 0;
   objCells = [
     {
       position: x x y,
+      index: 0,
       hasBeenClicked: false,
       hasBomb: false,
       bombsAround: 0,
@@ -43,6 +44,36 @@ let redefineBombs = 0;
 export default function CampoMinado ({ size, bombsAmount }) {
   const [objCells, changeCells] = useState([]);
 
+  const getPositionsArround = (initial, cells) => {
+    const initialCell = objCells[initial].position;
+    const num1 = Number(initialCell.split('x')[0]);
+    const num2 = Number(initialCell.split('x')[1]);
+
+    const key1 = `${num1 - 1}x${num2- 1}`;
+    const key2 = `${num1 - 1}x${num2}`;
+    const key3 = `${num1 - 1}x${num2 + 1}`;
+    const key4 = `${num1}x${num2 - 1}`;
+    const key6 = `${num1}x${num2 + 1}`;
+    const key7 = `${num1 + 1}x${num2 - 1}`;
+    const key8 = `${num1 + 1}x${num2}`;
+    const key9 = `${num1 + 1}x${num2 + 1}`;
+    const keys = [key1, key2, key3, key4, key6, key7, key8, key9];
+
+    keys.forEach((position) => {
+      objCells.forEach((cell, i) => {
+        if (position === cell.position && cell) {
+          const cellChanged = {
+            ...cell,
+            bombsAround: cell.bombsAround + 1,
+          }
+          cells.splice(i, 1, cellChanged);
+          console.log(cell);
+        };
+      });
+    });
+    return keys;
+  };
+
   useEffect(() => {
     if (redefineBombs === 1) {
       while (cellsWithBombs.length < bombsAmount) {
@@ -53,10 +84,11 @@ export default function CampoMinado ({ size, bombsAmount }) {
       const cells = [...objCells];
       cellsWithBombs.forEach((cellNumber) => {
         const cellChanged = {
-          ...objCells[cellNumber],
+          ...cells[cellNumber],
           hasBomb: true,
         };
         cells.splice(cellNumber, 1, cellChanged);
+        getPositionsArround(cellNumber, cells);
       });
       changeCells(cells);
     }
@@ -94,7 +126,9 @@ export default function CampoMinado ({ size, bombsAmount }) {
   };
 
   return (
-    <main>
+    <main
+      className="divCells"
+    >
       {
         objCells.map((cell, i) => {
           return (
@@ -102,23 +136,23 @@ export default function CampoMinado ({ size, bombsAmount }) {
               cell.hasBomb ? (
                 <img
                   key={ cell.position }
-                  className='withd'
-                  alt='cell'
+                  className="cell"
+                  alt="cell"
                   src={ bomb }
                 />
               ) : (
                 <img
                   key={ cell.position }
-                  className='withd'
-                  alt='cell'
+                  className="cell"
+                  alt="cell"
                   src={ nums[cell.bombsAround] }
                 />
               )
             ) : (
               <img
                 key={ cell.position }
-                className='withd'
-                alt='cell'
+                className="cell"
+                alt="cell"
                 src={ square }
                 onClick={ () => handleClick(cell, i) }
               />

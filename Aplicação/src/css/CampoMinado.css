@@ -1,12 +1,7 @@
-.withd {
-  display: inline;
-  width: 6%;
-  padding: 0px;
-  margin: 0px;
+.divCells {
+  width: 50%;
 }
 
-.height {
-  display: block;
-  padding: 0px;
-  margin: 0px;
+.cell {
+  width: 12%;
 }
