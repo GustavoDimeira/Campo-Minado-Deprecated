@@ -44,6 +44,8 @@ let redefineBombs = 0;
 export default function CampoMinado ({ size, bombsAmount }) {
   const [objCells, changeCells] = useState([]);
   const [isReseting, changeIsReseting] = useState(true);
+  const [hasLost, lostTrigger] = useState(false);
+  const [hasWin, winTrigger] = useState(false);
 
   // passa por todas as posições ao redor de um valor passado como parametro, e atualiza a chave bombsAround na variavel cells(que é a copia do array de celluas que esta sendo atualizado), tambem passada como parametro
 
@@ -76,6 +78,7 @@ export default function CampoMinado ({ size, bombsAmount }) {
   };
 
   // define as celulas com bombas, e chama a função, getPositionsArround para cada bomba, passando o index da celula com bomba e o array que esta sedo atualizado
+
   useEffect(() => {
     if (redefineBombs === 1) {
       while (cellsWithBombs.length < bombsAmount) {
@@ -96,7 +99,18 @@ export default function CampoMinado ({ size, bombsAmount }) {
     redefineBombs += 1;
   }, [objCells, size, bombsAmount])
 
-  // chamado uma vez durante a criação da pagina, para criar a quantia correta de quadrados
+  // ve se todas as celulas não bomba foram clicadas
+
+  useEffect(() => {
+    let ammountOfClicked = 0;
+    objCells.forEach((cell) => {
+      (cell.hasBeenClicked) && (ammountOfClicked += 1);
+    });
+    (ammountOfClicked === (size * size - bombsAmount)) && (winTrigger(true))
+  }, [objCells]);
+
+  // chamado uma vez durante a criação da pagina, para criar a quantia correta de quadrados, e ao reiniciar
+
   useEffect(() => {
     changeCells([]);
     for (let x = 0; x < size; x += 1) {
@@ -117,6 +131,8 @@ export default function CampoMinado ({ size, bombsAmount }) {
     };
   }, [size, isReseting]);
 
+  // chamado ao clicar em uma celula
+
   const handleClick = (cell, i) => {
     const cellChanged = {
       ...cell,
@@ -125,11 +141,14 @@ export default function CampoMinado ({ size, bombsAmount }) {
     const cells = [...objCells];
     cells.splice(i, 1, cellChanged)
     changeCells(cells);
+    cell.hasBomb && lostTrigger(true);
   };
 
   const reset = () => {
     redefineBombs = 1;
     cellsWithBombs = [];
+    lostTrigger(false);
+    winTrigger(false);
     changeIsReseting(!isReseting);
   };
 
@@ -147,34 +166,50 @@ export default function CampoMinado ({ size, bombsAmount }) {
         {
         objCells.map((cell, i) => {
           return (
-            !cell.hasBeenClicked ? (
+            cell.hasBeenClicked ? (
               cell.hasBomb ? (
-                <img
+                <button
+                  className="btnImg"
                   key={ cell.position }
+                >
+                  <img
                   className="cell"
                   alt="cell"
                   src={ bomb }
-                />
+                />  
+                </button>
+                
               ) : (
-                <img
+                <button
+                  className="btnImg"
                   key={ cell.position }
+                >
+                  <img
                   className="cell"
                   alt="cell"
                   src={ nums[cell.bombsAround] }
                 />
+                </button>
               )
             ) : (
-              <img
+              <button
+                onClick={ () => handleClick(cell, i) }
+                className="btnImg"
                 key={ cell.position }
+                disabled = { (hasLost || hasWin) }
+              >
+                <img
                 className="cell"
                 alt="cell"
-                src={ square }
-                onClick={ () => handleClick(cell, i) }
+                src={ square }                
               />
+              </button>
             )
           )
         })
-      };
+      }
+      { hasLost && <h3>Perdeu !</h3> }
+      { (hasWin && !hasLost) && <h3> Ganhou !</h3> }
       </div>
     </main>
   );
