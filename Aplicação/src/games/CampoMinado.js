@@ -16,7 +16,7 @@ import num8 from './img/number8.png';
 
 const nums = [emptySquare, num1, num2, num3, num4, num5, num6, num7, num8];
 let cellsWithBombs = [];
-// redefinir para 0 quando for criar novas posições de bomba
+// redefinir para 1 quando for criar novas posições de bomba
 let redefineBombs = 0;
 
 /*
@@ -43,6 +43,9 @@ let redefineBombs = 0;
 
 export default function CampoMinado ({ size, bombsAmount }) {
   const [objCells, changeCells] = useState([]);
+  const [isReseting, changeIsReseting] = useState(true);
+
+  // passa por todas as posições ao redor de um valor passado como parametro, e atualiza a chave bombsAround na variavel cells(que é a copia do array de celluas que esta sendo atualizado), tambem passada como parametro
 
   const getPositionsArround = (initial, cells) => {
     const initialCell = objCells[initial].position;
@@ -70,9 +73,9 @@ export default function CampoMinado ({ size, bombsAmount }) {
         };
       });
     });
-    return keys;
   };
 
+  // define as celulas com bombas, e chama a função, getPositionsArround para cada bomba, passando o index da celula com bomba e o array que esta sedo atualizado
   useEffect(() => {
     if (redefineBombs === 1) {
       while (cellsWithBombs.length < bombsAmount) {
@@ -91,8 +94,9 @@ export default function CampoMinado ({ size, bombsAmount }) {
       changeCells(cells);
     }
     redefineBombs += 1;
-  }, [objCells])
+  }, [objCells, size, bombsAmount])
 
+  // chamado uma vez durante a criação da pagina, para criar a quantia correta de quadrados
   useEffect(() => {
     changeCells([]);
     for (let x = 0; x < size; x += 1) {
@@ -111,7 +115,7 @@ export default function CampoMinado ({ size, bombsAmount }) {
         });
       };
     };
-  }, []);
+  }, [size, isReseting]);
 
   const handleClick = (cell, i) => {
     const cellChanged = {
@@ -123,11 +127,24 @@ export default function CampoMinado ({ size, bombsAmount }) {
     changeCells(cells);
   };
 
+  const reset = () => {
+    redefineBombs = 1;
+    cellsWithBombs = [];
+    changeIsReseting(!isReseting);
+  };
+
   return (
-    <main
-      className="divCells"
-    >
-      {
+    <main>
+      <button
+        className="btn"
+        onClick={() => reset() }
+      >
+        Reiniciar
+      </button>
+      <div
+        className="divCells"
+      >
+        {
         objCells.map((cell, i) => {
           return (
             !cell.hasBeenClicked ? (
@@ -157,7 +174,8 @@ export default function CampoMinado ({ size, bombsAmount }) {
             )
           )
         })
-      }
+      };
+      </div>
     </main>
   );
 };

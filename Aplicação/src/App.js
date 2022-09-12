@@ -5,7 +5,7 @@ import CampoMinado from './games/CampoMinado';
 function App() {
   return (
     <div className="App">
-      <CampoMinado size={ 4 } bombsAmount={ 15 }/>
+      <CampoMinado size={ 8 } bombsAmount={ 12 }/>
     </div>
   );
 }
