@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import '../css/CampoMinado.css';
 
 import square from './img/square.png'
@@ -43,13 +43,36 @@ let redefineBombs = 0;
 
 export default function CampoMinado ({ size, bombsAmount }) {
   const [objCells, changeCells] = useState([]);
-  const [isReseting, changeIsReseting] = useState(true);
+  const [isReseting, changeIsReseting] = useState(false);
   const [hasLost, lostTrigger] = useState(false);
   const [hasWin, winTrigger] = useState(false);
 
+// funções que o getPositionsArround vai chamar ->
+// 1) atualiza a quantia de bombas
+
+  const updateBombsAround = (keys, cells) => {
+    keys.forEach((position) => {
+      objCells.forEach((cell, i) => {
+        if (position === cell.position) {
+          const cellChanged = {
+            ...cells[i],
+            bombsAround: cells[i].bombsAround + 1,
+          }
+          cells.splice(i, 1, cellChanged);
+        };
+      });
+    });
+  };
+
+// 2) atualiza o conectedWith
+
+  const updateConectedWith = (keys, cells) => {
+
+  };
+
   // passa por todas as posições ao redor de um valor passado como parametro, e atualiza a chave bombsAround na variavel cells(que é a copia do array de celluas que esta sendo atualizado), tambem passada como parametro
 
-  const getPositionsArround = (initial, cells) => {
+  const getPositionsArround = (initial, cells, keyToBeChanged) => {
     const initialCell = objCells[initial].position;
     const num1 = Number(initialCell.split('x')[0]);
     const num2 = Number(initialCell.split('x')[1]);
@@ -64,17 +87,18 @@ export default function CampoMinado ({ size, bombsAmount }) {
     const key9 = `${num1 + 1}x${num2 + 1}`;
     const keys = [key1, key2, key3, key4, key6, key7, key8, key9];
 
-    keys.forEach((position) => {
-      objCells.forEach((cell, i) => {
-        if (position === cell.position) {
-          const cellChanged = {
-            ...cells[i],
-            bombsAround: cells[i].bombsAround + 1,
-          }
-          cells.splice(i, 1, cellChanged);
-        };
-      });
-    });
+    switch (keyToBeChanged) {
+      case 'bombsAround':
+        updateBombsAround(keys, cells);
+      break;
+      case 'conectedWith':
+        updateConectedWith(keys, cells);
+      break;
+      default: 
+        throw new Error (
+          'nenhum caso encontrado'
+        );
+    };
   };
 
   // define as celulas com bombas, e chama a função, getPositionsArround para cada bomba, passando o index da celula com bomba e o array que esta sedo atualizado
@@ -92,7 +116,10 @@ export default function CampoMinado ({ size, bombsAmount }) {
           hasBomb: true,
         };
         cells.splice(cellNumber, 1, cellChanged);
-        getPositionsArround(cellNumber, cells);
+        getPositionsArround(cellNumber, cells, 'bombsAround');
+      });
+      cells.forEach((cell, i, array) => {
+        getPositionsArround(i, array, 'conectedWith');
       });
       changeCells(cells);
     }
@@ -166,17 +193,17 @@ export default function CampoMinado ({ size, bombsAmount }) {
         {
         objCells.map((cell, i) => {
           return (
-            cell.hasBeenClicked ? (
+            !cell.hasBeenClicked ? (
               cell.hasBomb ? (
                 <button
                   className="btnImg"
                   key={ cell.position }
                 >
                   <img
-                  className="cell"
-                  alt="cell"
-                  src={ bomb }
-                />  
+                    className="cell"
+                    alt="cell"
+                    src={ bomb }
+                  />  
                 </button>
                 
               ) : (
@@ -185,10 +212,10 @@ export default function CampoMinado ({ size, bombsAmount }) {
                   key={ cell.position }
                 >
                   <img
-                  className="cell"
-                  alt="cell"
-                  src={ nums[cell.bombsAround] }
-                />
+                    className="cell"
+                    alt="cell"
+                    src={ nums[cell.bombsAround] }
+                  />
                 </button>
               )
             ) : (
@@ -199,17 +226,17 @@ export default function CampoMinado ({ size, bombsAmount }) {
                 disabled = { (hasLost || hasWin) }
               >
                 <img
-                className="cell"
-                alt="cell"
-                src={ square }                
-              />
+                  className="cell"
+                  alt="cell"
+                  src={ square }                
+                />
               </button>
             )
           )
         })
       }
       { hasLost && <h3>Perdeu !</h3> }
-      { (hasWin && !hasLost) && <h3> Ganhou !</h3> }
+      { (hasWin && !hasLost) && <h3>Ganhou !</h3> }
       </div>
     </main>
   );
