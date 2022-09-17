@@ -18,6 +18,7 @@ const nums = [emptySquare, num1, num2, num3, num4, num5, num6, num7, num8];
 let cellsWithBombs = [];
 // redefinir para 1 quando for criar novas posições de bomba
 let redefineBombs = 0;
+let numberOfArrays = 0;
 
 /*
   objCells = [
@@ -52,7 +53,7 @@ export default function CampoMinado ({ size, bombsAmount }) {
 
   const updateBombsAround = (keys, cells) => {
     keys.forEach((position) => {
-      objCells.forEach((cell, i) => {
+      cells.forEach((cell, i) => {
         if (position === cell.position) {
           const cellChanged = {
             ...cells[i],
@@ -66,13 +67,46 @@ export default function CampoMinado ({ size, bombsAmount }) {
 
 // 2) atualiza o conectedWith
 
-  const updateConectedWith = (keys, cells) => {
+  const updateConectedWith = (keys, cells, cell) => {
+    let arrayOfConected = undefined;
+    keys.forEach((key) => {
+      if(!arrayOfConected) {
+        arrayOfConected = (cells.find((cell) => cell.position === key))?.connectedWith;
+        console.log(arrayOfConected);
+      }
+    });
 
+    if(arrayOfConected) {
+      keys.forEach((position) => {
+        cells.forEach((cell, i) => {
+          if (position === cell.position) {
+            const cellChanged = {
+              ...cells[i],
+              connectedWith: arrayOfConected + 1,
+            }
+            cells.splice(i, 1, cellChanged);
+          };
+        });
+      });
+    } else {
+      numberOfArrays += 1;
+      keys.forEach((position) => {
+        cells.forEach((cell, i) => {
+          if (position === cell.position) {
+            const cellChanged = {
+              ...cells[i],
+              connectedWith: 1,
+            }
+            cells.splice(i, 1, cellChanged);
+          };
+        });
+      });
+    };
   };
 
   // passa por todas as posições ao redor de um valor passado como parametro, e atualiza a chave bombsAround na variavel cells(que é a copia do array de celluas que esta sendo atualizado), tambem passada como parametro
 
-  const getPositionsArround = (initial, cells, keyToBeChanged) => {
+  const getPositionsArround = (initial, cells, keyToBeChanged, cell) => {
     const initialCell = objCells[initial].position;
     const num1 = Number(initialCell.split('x')[0]);
     const num2 = Number(initialCell.split('x')[1]);
@@ -81,18 +115,19 @@ export default function CampoMinado ({ size, bombsAmount }) {
     const key2 = `${num1 - 1}x${num2}`;
     const key3 = `${num1 - 1}x${num2 + 1}`;
     const key4 = `${num1}x${num2 - 1}`;
+    const key5 = `${num1}x${num2}`;
     const key6 = `${num1}x${num2 + 1}`;
     const key7 = `${num1 + 1}x${num2 - 1}`;
     const key8 = `${num1 + 1}x${num2}`;
     const key9 = `${num1 + 1}x${num2 + 1}`;
-    const keys = [key1, key2, key3, key4, key6, key7, key8, key9];
+    const keys = [key1, key2, key3, key4, key5, key6, key7, key8, key9];
 
     switch (keyToBeChanged) {
       case 'bombsAround':
         updateBombsAround(keys, cells);
       break;
       case 'conectedWith':
-        updateConectedWith(keys, cells);
+        updateConectedWith(keys, cells, cell);
       break;
       default: 
         throw new Error (
@@ -101,7 +136,7 @@ export default function CampoMinado ({ size, bombsAmount }) {
     };
   };
 
-  // define as celulas com bombas, e chama a função, getPositionsArround para cada bomba, passando o index da celula com bomba e o array que esta sedo atualizado
+  // define as celulas com bombas, e chama a função, getPositionsArround para cada bomba, passando o index da celula com bomba e o array que esta sedo atualizado, faz o mesmo para 
 
   useEffect(() => {
     if (redefineBombs === 1) {
@@ -118,8 +153,10 @@ export default function CampoMinado ({ size, bombsAmount }) {
         cells.splice(cellNumber, 1, cellChanged);
         getPositionsArround(cellNumber, cells, 'bombsAround');
       });
-      cells.forEach((cell, i, array) => {
-        getPositionsArround(i, array, 'conectedWith');
+      cells.forEach((cell, i) => {
+        (!cell.hasBomb && cell.bombsAround === 0) && (
+          getPositionsArround(i, cells, 'conectedWith', cell)
+        );
       });
       changeCells(cells);
     }
@@ -193,7 +230,7 @@ export default function CampoMinado ({ size, bombsAmount }) {
         {
         objCells.map((cell, i) => {
           return (
-            !cell.hasBeenClicked ? (
+            cell.hasBeenClicked ? (
               cell.hasBomb ? (
                 <button
                   className="btnImg"
@@ -236,7 +273,7 @@ export default function CampoMinado ({ size, bombsAmount }) {
         })
       }
       { hasLost && <h3>Perdeu !</h3> }
-      { (hasWin && !hasLost) && <h3>Ganhou !</h3> }
+      { (!hasWin && !hasLost) && <h3>Ganhou !</h3> }
       </div>
     </main>
   );
